@@ -36,7 +36,8 @@ user_name = input("Hello user what is your name?: ")
 text_to_speech("Welcome " + user_name + " this is a speech recognition game!\n"
                                "For each word, you will have 5 tries and at end of the game\n"
                                "you will be graded on your performance.", "2.mp3")
-time.sleep(10)
+time.sleep(15)
+# sleep set to 15 seconds, to make malleable for longer names
 
 filehandle = open("test.txt")
 # opening text file
@@ -46,6 +47,8 @@ filehandle.close()
 words = nltk.word_tokenize(text)
 # separating words in text file
 
+words_length = 0
+
 text_to_speech("On each iteration please state the word on the console", "3.mp3")
 time.sleep(10)
 for i in words:
@@ -54,10 +57,12 @@ for i in words:
     # prompting of user
     print(i)
 
-    while index < 5:
-        # user gets 5 tries
-        try:
-            # try except block if program doesn't catch your voice
+    try:
+        """try except block if program doesn't catch your voice
+        Incorporates while statement as well 
+        """
+        while index < 5:
+            # user gets 5 tries
             with microphone as source:
                 recognizer.adjust_for_ambient_noise(source)
                 audio = recognizer.listen(source)
@@ -69,6 +74,7 @@ for i in words:
                 time.sleep(10)
                 user_points += point_dictionary(index)
                 total_points += 10
+                words_length += 1
                 break
             else:
                 index += 1
@@ -77,32 +83,32 @@ for i in words:
                 for i in range(10, 0, -1):
                     print(f"In {i}")
                     time.sleep(1)
-
-        except:
-            raise Exception("make sure you state your word clearly. No points have been awarded.\n"
-                            "Try again.")
-
-        finally:
             if index == 5:
                 # if user didnt state word correctly
-                text_to_speech("To bad. You did not win any points.", "6.mp3")
+                text_to_speech("To bad. You did not win any points with this word.", "6.mp3")
+                words_length += 1
+    except:
+    # exception if program doesn't pick up your voice or picks up a random noise.
+        raise Exception("make sure you state your word clearly. No points have been awarded.\n"
+                        "Try again.")
+    finally:
+        try:
+            # incorporation of possible error if first try except block outputs 0 as score
+            score = (user_points / total_points) * 100
+        except:
+            # exception if score is 0/0
 
-            try:
-                # incorporation of possible error if first try except block outputs 0 as score
-                score = (user_points / total_points) * 100
-            except:
+            print(f"Good job. You got a {score}%")
+            raise Exception("Division by zero error!!! Try again.")
 
-                print(f"Good job. You got a {score}%")
-                raise Exception("You can't divide zero by zero")
+        finally:
+            if i == len(words):
+                if score > 89:
+                    print(f"Congrats " + user_name + f" you scored a {score}%")
+                elif score > 79 and score < 90:
+                    print(f"You scored a {score}%")
 
-            finally:
-                if i == len(words):
-                    if score > 89:
-                        print(f"Congrats " + user_name + f" you scored a {score}%")
-                    elif score > 79 and score < 90:
-                        print(f"You scored a {score}%")
-
-                    elif score > 69 and score < 79:
-                        print(f"You scored a {score}%")
-                    else:
-                        print(f"{score}% accuracy")
+                elif score > 69 and score < 79:
+                    print(f"You scored a {score}%")
+                else:
+                    print(f"{score}% accuracy")
